@@ -27,12 +27,11 @@ var production = process.env.NODE_ENV === 'production';
 app.configure(function(){
     var bundle = require('browserify')(process.env.PWD + '/lib/client.js');
     app.use(bundle);
-    app.use(require('connect-less')({ src: process.env.PWD }));
+    app.use(require('connect-less')({ src: process.env.PWD, debug:true }));
     app.use(express['static'](path.join(process.env.PWD, 'static')));
 });
 
 app.configure('development', function() {
-    // app.use(express.staticProvider(process.env.PWD));
     app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
