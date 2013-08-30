@@ -38,12 +38,12 @@ app.configure('development', function() {
 
 app.configure('production', function() {
     // setup javascript minification
-    app.use(require('minj').middleware({ src: process.env.PWD}));
+    // app.use(require('minj').middleware({ src: process.env.PWD}));
 
-    var oneYear = 31557600000;
-    app.use(express.staticCache());
-    app.use(express['static'](path.join(process.env.PWD, 'static'), {maxAge: oneYear}));
-    app.use(express.errorHandler());
+    // var oneYear = 31557600000;
+    // app.use(express.staticCache());
+    // app.use(express['static'](path.join(process.env.PWD, 'static'), {maxAge: oneYear}));
+    // app.use(express.errorHandler());
 });
 
 app.configure(function(){
