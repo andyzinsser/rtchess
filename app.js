@@ -1,4 +1,7 @@
-var application_root = __dirname;
+// var process.env.PWD = __dirname;
+// Heroku API for __dirname
+process.env.PWD = process.cwd();
+// var application_root = process.cwd();
 var express = require('express');
 var path = require('path');
 var Seq = require('seq');
@@ -11,13 +14,16 @@ var common = require('./lib/common');
 
 var logger = console;
 
-var app = express.createServer();
-
-var io = require('socket.io').listen(app);
+// var app = express.createServer();
+var express = require("express");
+var app = express();
+var http = require('http');
+var server = http.createServer(app);
+var io = require('socket.io').listen(server);
 
 // true when we are running in production
 var production = process.env.NODE_ENV === 'production';
-var pubdir = path.join(application_root, 'static');
+var pubdir = path.join(process.env.PWD, 'static');
 
 // have to do this because express doesn't follow the standard
 // and uses the reserved static keyword as a property
@@ -25,7 +31,7 @@ var pubdir = path.join(application_root, 'static');
 express.staticProvider = express['static'];
 
 app.configure(function(){
-    var bundle = require('browserify')(__dirname + '/lib/client.js');
+    var bundle = require('browserify')(process.env.PWD + '/lib/client.js');
     app.use(bundle);
     app.use(require('connect-less')({ src: pubdir }));
 });
@@ -47,30 +53,19 @@ app.configure('production', function() {
 
 
 app.configure(function(){
-    app.register('.html', require('hbs'));
     app.use(express.bodyParser());
     app.use(express.methodOverride());
     app.use(app.router);
-    app.set('views', path.join(application_root, 'views'));
+    app.set('views', path.join(process.env.PWD, 'views'));
     app.set('view engine', 'html');
-    app.set('view options', {
-        layout: true
-    });
+    app.engine('html', require('hbs').__express);
 });
 
-app.error(function(err, req, res) {
-    if (err instanceof NotFound) {
-        return res.send(404);
-    } else {
-        logger.error(err.message, err);
-
-        if (!production) {
-            return res.send(err.message + '\n' + err.stack);
-        }
-
-        // in production, just log log the error and display 500 page
-        return res.send(500);
-    }
+app.use(function(err, req, res, next){
+  // if an error occurs Connect will pass it down
+  // through these "error-handling" middleware
+  // allowing you to respond however you like
+  res.send(500, { error: 'Sorry something went wrong!' });
 });
 
 process.on('uncaughtException', function(err) {
@@ -190,6 +185,7 @@ var SIDES = ['black', 'white'];
 
 // only use long polling
 io.set('transports', ['xhr-polling', 'jsonp-polling']);
+io.set("polling duration", 10);
 
 io.sockets.on('connection', function(socket) {
     var room;
@@ -364,6 +360,7 @@ function randomString(len) {
     return ret;
 }
 
-var port = 3003;
-app.listen(port);
-logger.info('server running on port ' + port);
+var port = process.env.PORT || 5000;
+app.listen(port, function() {
+    logger.info('server running on port ' + port);
+});
