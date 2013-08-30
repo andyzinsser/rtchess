@@ -23,38 +23,32 @@ var io = require('socket.io').listen(server);
 
 // true when we are running in production
 var production = process.env.NODE_ENV === 'production';
-var pubdir = path.join(process.env.PWD, 'static');
-
-// have to do this because express doesn't follow the standard
-// and uses the reserved static keyword as a property
-// TODO: this is stupid
-express.staticProvider = express['static'];
 
 app.configure(function(){
     var bundle = require('browserify')(process.env.PWD + '/lib/client.js');
     app.use(bundle);
-    app.use(require('connect-less')({ src: pubdir }));
+    app.use(require('connect-less')({ src: process.env.PWD }));
 });
 
 app.configure('development', function() {
-    app.use(express.staticProvider(pubdir));
+    // app.use(express.staticProvider(process.env.PWD));
     app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 });
 
 app.configure('production', function() {
     // setup javascript minification
-    app.use(require('minj').middleware({ src: pubdir}));
+    app.use(require('minj').middleware({ src: process.env.PWD}));
 
     var oneYear = 31557600000;
     app.use(express.staticCache());
-    app.use(express.staticProvider(pubdir, { maxAge: oneYear }));
+    app.use(express['static'](path.join(process.env.PWD, 'static'), {maxAge: oneYear}));
     app.use(express.errorHandler());
 });
-
 
 app.configure(function(){
     app.use(express.bodyParser());
     app.use(express.methodOverride());
+    app.use(express['static'](path.join(process.env.PWD, 'static')));
     app.use(app.router);
     app.set('views', path.join(process.env.PWD, 'views'));
     app.set('view engine', 'html');
@@ -62,10 +56,7 @@ app.configure(function(){
 });
 
 app.use(function(err, req, res, next){
-  // if an error occurs Connect will pass it down
-  // through these "error-handling" middleware
-  // allowing you to respond however you like
-  res.send(500, { error: 'Sorry something went wrong!' });
+    res.send(500, { error: 'Sorry something went wrong!' });
 });
 
 process.on('uncaughtException', function(err) {
@@ -74,6 +65,7 @@ process.on('uncaughtException', function(err) {
     logger.error(err.stack);
     logger.error('----------------------------------------');
 });
+
 
 function Room(id) {
     this.id = id;
@@ -183,9 +175,11 @@ Room.prototype.remove = function(socket) {
 var rooms = {};
 var SIDES = ['black', 'white'];
 
-// only use long polling
-io.set('transports', ['xhr-polling', 'jsonp-polling']);
-io.set("polling duration", 10);
+io.configure(function() {
+    io.set('transports', ['xhr-polling']);
+    // io.set('transports', ['jsonp-polling']);
+    io.set("polling duration", 10);
+});
 
 io.sockets.on('connection', function(socket) {
     var room;
@@ -361,6 +355,7 @@ function randomString(len) {
 }
 
 var port = process.env.PORT || 5000;
-app.listen(port, function() {
+
+server.listen(port, function() {
     logger.info('server running on port ' + port);
 });
