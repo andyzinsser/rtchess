@@ -1,0 +1,108 @@
+.navbar-inner {
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+}
+#chess-board {
+  border: 5px solid #333333;
+  border-collapse: collapse;
+  position: relative;
+  width: 640px;
+  height: 640px;
+}
+.chess-cell {
+  background: #fff;
+  background: -moz-linear-gradient(top, #ffffff, #eeeeee);
+  background: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#eeeeee));
+  box-shadow: inset 0 0 0 1px #fff;
+  -moz-box-shadow: inset 0 0 0 1px #fff;
+  -webkit-box-shadow: inset 0 0 0 1px #fff;
+  height: 80px;
+  width: 80px;
+  text-align: center;
+  vertical-align: middle;
+  padding: 0px;
+  position: absolute;
+}
+.black-cell {
+  background: #ccc;
+  background: -moz-linear-gradient(top, #cccccc, #eeeeee);
+  background: -webkit-gradient(linear, 0 0, 0 100%, from(#cccccc), to(#eeeeee));
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.4);
+  -moz-box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.4);
+  -webkit-box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.4);
+}
+.piece {
+  color: #000;
+  font-size: 60px;
+  font-family: serif;
+  height: 80px;
+  width: 80px;
+  text-decoration: none;
+  text-shadow: 0 1px #fff;
+  text-align: center;
+  position: absolute;
+  cursor: inherit;
+  -moz-user-select: -moz-none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -o-user-select: none;
+}
+.clickable {
+  cursor: pointer;
+}
+.piece-holder {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  height: 80px;
+  width: 80px;
+}
+.piece-selected {
+  background: #3366ff;
+  zoom: 1;
+  filter: alpha(opacity=50);
+  opacity: 0.5;
+}
+.timer {
+  position: absolute;
+  left: 0px;
+  width: 80px;
+  background: #b88a00;
+  zoom: 1;
+  filter: alpha(opacity=50);
+  opacity: 0.5;
+}
+.message {
+  color: #3333ff;
+  position: absolute;
+  left: 0px;
+  top: 265px;
+  font-size: 30px;
+  font-weight: bold;
+  width: 100%;
+  text-align: center;
+  cursor: inherit;
+  -moz-user-select: -moz-none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -o-user-select: none;
+}
+#ping-text {
+  display: inline-block;
+  width: 8em;
+  text-align: left;
+}
+.button-bar {
+  padding: 5px;
+  text-align: center;
+  width: 100%;
+}
+.btn-home {
+  font-size: 24px;
+  margin-left: 5px;
+  margin-right: 5px;
+}
+.start-pressed {
+  color: #3333ff;
+}
