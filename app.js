@@ -28,6 +28,7 @@ app.configure(function(){
     var bundle = require('browserify')(process.env.PWD + '/lib/client.js');
     app.use(bundle);
     app.use(require('connect-less')({ src: process.env.PWD }));
+    app.use(express['static'](path.join(process.env.PWD, 'static')));
 });
 
 app.configure('development', function() {
@@ -48,7 +49,6 @@ app.configure('production', function() {
 app.configure(function(){
     app.use(express.bodyParser());
     app.use(express.methodOverride());
-    app.use(express['static'](path.join(process.env.PWD, 'static')));
     app.use(app.router);
     app.set('views', path.join(process.env.PWD, 'views'));
     app.set('view engine', 'html');
