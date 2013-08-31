@@ -1,3 +1,6 @@
 TODOS:
-- get static files loading locally
-- get it launched to heroku
+- Getting arbiter inegrated
+
+
+Create a play for free option
+
