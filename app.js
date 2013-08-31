@@ -99,11 +99,13 @@ Room.prototype.init = function() {
         self.starting = {};
 
         // Payout the winner
-        request.post('https://cointoss.arbiter.me/api/v0.1/challenge/' + self.arbiter_id + '/payout/?winner_token=' + self.arbiter_token_sides[color],
-            function(err, response, body) {
-                var parsed = JSON.parse(body);
-                console.log(parsed);
-            });
+        if (self.arbiter_id) {
+            request.post('https://cointoss.arbiter.me/api/v0.1/challenge/' + self.arbiter_id + '/payout/?winner_token=' + self.arbiter_token_sides[color],
+                function(err, response, body) {
+                    var parsed = JSON.parse(body);
+                    console.log(parsed);
+                });
+        }
     });
 
     this.board.on('activateBoard', function() {
@@ -367,8 +369,7 @@ app.get('/r/:room_id', function(req, res) {
 
     };
 
-    if (for_bitcoin) {
-
+    if (for_bitcoin === true) {
         // Make sure we have an arbiter challenge setup for this game
         if (!room.arbiter_id) {
             // arbiter.create_challenge
@@ -460,6 +461,7 @@ app.get('/r/:room_id', function(req, res) {
         }
     }
     else {
+        console.log("JUST LOAD THE ROOM");
         return res.render('room', {
             title: 'Real-Time Chess: Game',
             room_id: room_id

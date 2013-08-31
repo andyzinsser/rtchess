@@ -1,3 +1,7 @@
+<style>
+  .navbar { display:none; }
+  body { margin-top: 20px; }
+</style>
 <center>
   <script type="text/javascript">
       var openAuthWindow = function() {
@@ -6,7 +10,7 @@
       };
 
       $(function() {
-
+          console.log("{{ auth_url }}");
           if ("{{ auth_url }}") {
             $("#open_auth_window").click(openAuthWindow);
             openAuthWindow();
@@ -23,8 +27,8 @@
   {{else}}
     <div class="button-bar">
       <button id="sit-white" class="side-button btn">Sit as White</button>
-      <button id="sit-black" class="side-button btn">Sit as Black</button>
-      <button id="start-game" class="btn" disabled="disabled">Start Game</button>
+      <button id="sit-black" class="side-button btn btn-inverse">Sit as Black</button>
+      <button id="start-game" class="btn btn-primary" disabled="disabled">Start Game</button>
       <span id="ping-text">Ping: <span id="ping"></span> ms</span>
     </div>
     <div id="chess-board"></div>
