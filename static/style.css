@@ -7,7 +7,10 @@ html {
 }
 
 body {
-  margin-top:60px;
+  background: transparent;
+}
+
+#wrap {
   background:transparent;
   font-family: 'Days One', sans-serif;
 }
@@ -33,7 +36,7 @@ a { cursor: pointer;}
 #index_heading {
   color:white;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, .8);
-  padding: 40px 0;
+  padding: 80px 0 40px;
   margin-bottom:40px;
 }
 
@@ -169,4 +172,52 @@ a { cursor: pointer;}
   .navbar-collapse.collapse {
     float:left;
   }
+}
+
+
+/*
+  Sticky Footer
+*/
+
+html,
+body {
+  height: 100%;
+  /* The html and body elements cannot have any padding or margin. */
+}
+/* Wrapper for page content to push down footer */
+#wrap {
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  /* Negative indent footer by it's height */
+  margin: 0 auto -100px;
+}
+
+/* Set the fixed height of the footer here */
+#push { height: 40px; }
+
+#footer {
+  background-color:rgba(0, 0, 0, .9);
+  height:60px;
+}
+
+#footer p {
+  margin-top:20px;
+}
+
+#footer a,
+#footer p {
+  color:#999;
+  font-size:14px;
+  text-align:center;
+}
+
+/* Lastly, apply responsive CSS fixes as necessary */
+@media (max-width: 767px) {
+#footer {
+  margin-left: -20px;
+  margin-right: -20px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
 }

@@ -24,27 +24,36 @@
   <script src="/bootstrap/js/bootstrap.min.js"></script>
 </head>
 <body>
-  <!--[if lt IE 7]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
-  <header>
+  <div id="wrap">
+    <!--[if lt IE 7]><p class=chromeframe>Your browser is <em>ancient!</em> <a href="http://browsehappy.com/">Upgrade to a different browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.</p><![endif]-->
+    <header>
 
-  <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="container">
-        <div class="navbar-header">
-          <a class="navbar-brand" href="/"><i class="icon icon-btc"></i>ullet Chess</a>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+          <div class="navbar-header">
+            <a class="navbar-brand" href="/"><i class="icon icon-btc"></i>ullet Chess</a>
+          </div>
         </div>
+    </div>
+
+    </header>
+
+    <div role="main" id="main">
+      <div class="container">
+            {{{body}}}
       </div>
-  </div>
-
-  </header>
-
-  <div role="main" id="main">
-    <div class="container">
-          {{{body}}}
     </div>
   </div>
 
-  <footer>
+  <div id="push"></div>
 
+  <footer id="footer">
+    <div class="container">
+      <p><a href="http://www.kotaku.com.au/2013/08/this-real-time-chess-game-is-not-for-the-faint-of-heart/"
+            target="_blank">What is real time chess?</a> | <a href="https://www.youtube.com/watch?v=Um63OQz3bjo" target="_blank">
+            What is Bitcoin?</a> | <a href="https://coinbase.com/" target="_blank">Buy Bitcoin</a>
+      </p>
+    </div>
   </footer>
 
   <script>
