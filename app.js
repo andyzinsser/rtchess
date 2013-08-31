@@ -7,6 +7,7 @@ var path = require('path');
 var Seq = require('seq');
 var EventEmitter = require('events').EventEmitter;
 var _ = require('underscore');
+var request = require('request');
 
 var Board = require('./lib/board');
 var config = require('./lib/config');
@@ -29,6 +30,9 @@ app.configure(function(){
     app.use(bundle);
     app.use(require('connect-less')({ src: process.env.PWD, debug:true }));
     app.use(express['static'](path.join(process.env.PWD, 'static')));
+
+    app.use(express.cookieParser());
+    app.use(express.session({secret: 'chessCanBeKewl12121hhJUJ'}));
 });
 
 app.configure('development', function() {
@@ -71,6 +75,8 @@ function Room(id) {
     this.sides = {};
     this.starting = {};
     this.watchers = [];
+    this.arbiter_id = undefined;
+    this.arbiter_token_sides = {};
     var self = this;
 }
 
@@ -88,9 +94,16 @@ Room.prototype.init = function() {
     };
     common.bindPassThrough(events, broadcast, this.board);
 
-    this.board.on('gameOver', function() {
+    this.board.on('gameOver', function(color) {
         // no one is starting
         self.starting = {};
+
+        // Payout the winner
+        request.post('https://cointoss.arbiter.me/api/v0.1/challenge/' + self.arbiter_id + '/payout/?winner_token=' + self.arbiter_token_sides[color],
+            function(err, response, body) {
+                var parsed = JSON.parse(body);
+                console.log(parsed);
+            });
     });
 
     this.board.on('activateBoard', function() {
@@ -171,8 +184,15 @@ Room.prototype.remove = function(socket) {
     }
 };
 
+function Session(token, private_key) {
+    this.token = token;
+    this.private_key = private_key;
+    this.side_for_rooms = {};
+}
+
 var rooms = {};
 var SIDES = ['black', 'white'];
+var sessions = {};
 
 io.configure(function() {
     io.set('transports', ['xhr-polling']);
@@ -214,11 +234,20 @@ io.sockets.on('connection', function(socket) {
         room.remove(socket);
         room = undefined;
     });
-    socket.on('chooseSide', function(side) {
+    socket.on('chooseSide', function(args) {
+        var side = args.color;
+        var arbiter_token = args.arbiter_token;
+        var session;
+
         if(!room)
             return;
         if(!room.sides[side]) {
             mySide = side;
+
+            if (arbiter_token) {
+                room.arbiter_token_sides[side[0]] = arbiter_token;
+            }
+
             room.setSide(side, socket);
             socket.emit('gotSide', side);
         }
@@ -257,20 +286,21 @@ io.sockets.on('connection', function(socket) {
 
 app.get('/', function(req, res) {
     return res.render('index', {
-        title: 'Real-Time Chess'
+        title: 'Bet BTC on Chess'
     });
 });
 
 app.get('/new_room', function(req, res) {
     var room_id = randomString(10);
+    var for_bitcoin = req.query.for_bitcoin;
     rooms[room_id] = new Room(room_id);
-    return res.redirect('/r/' + room_id);
+    return res.redirect('/r/' + room_id + '?for_bitcoin=' + for_bitcoin);
 });
 
 app.get('/join_random', function(req, res) {
     var roomList = [];
     var id, room;
-
+    var for_bitcoin = req.query.for_bitcoin;
     var oneLeft = SIDES.length - 1;
 
     // find rooms with 1 side left to fill and everyone else has hit start
@@ -300,23 +330,141 @@ app.get('/join_random', function(req, res) {
 
     // create a new room
     if(!roomList.length) {
-        return res.redirect('/new_room');
+        return res.redirect('/new_room?for_bitcoin=' + for_bitcoin);
     }
 
     var i = Math.floor(Math.random()*roomList.length);
     room = roomList[i];
-    return res.redirect('/r/' + room.id);
+    return res.redirect('/r/' + room.id + '?for_bitcoin=' + for_bitcoin);
 });
 
 app.get('/r/:room_id', function(req, res) {
     var room_id = req.param('room_id');
+    var for_bitcoin = req.query.for_bitcoin;
+    var room = rooms[room_id];
+
     if(!rooms[room_id]) {
         rooms[room_id] = new Room(room_id);
+        room = rooms[room_id];
     }
-    return res.render('room', {
-        title: 'Real-Time Chess: Game',
-        room_id: room_id
-    });
+
+    var buyIntoRoom = function(arbiter_token, room, next) {
+        var private_key = sessions[arbiter_token].private_key;
+        request.post('https://cointoss.arbiter.me/api/v0.1/challenge/' + room.arbiter_id + '/ante/?arbiter_token=' + arbiter_token + '&arbiter_private_key=' + private_key,
+            function(err, response, body) {
+                var parsed = JSON.parse(body);
+                if (parsed.auth_url) {
+                    return res.render('room', {
+                        title: 'Authenticate with Arbiter',
+                        room_id: room_id,
+                        auth_url: parsed.auth_url
+                    });
+                } else {
+                    next(parsed.success);
+                }
+            }
+        );
+
+    };
+
+    if (for_bitcoin) {
+
+        // Make sure we have an arbiter challenge setup for this game
+        if (!room.arbiter_id) {
+            // arbiter.create_challenge
+            request.post('https://cointoss.arbiter.me/api/v0.1/challenge/create/?ante=0.001&return_address=1PkBgbVetZGjNMrkLMdzh7kc3eNJooStb4', function(err, response, body) {
+                var parsed = JSON.parse(body);
+                if (parsed.success) {
+                    room.arbiter_id = parsed.challenge._id;
+                    if (req.session.arbiter_token) {
+                        buyIntoRoom(req.session.arbiter_token, room, function(success) {
+
+                            // TODO: include the pot amount in the page somewhere
+                            if (success) {
+                                return res.render('room', {
+                                    title: 'Real-Time Chess: Game',
+                                    room_id: room_id,
+                                    arbiter_token: req.session.arbiter_token
+                                });
+                            }
+                            else {
+                                return res.render('error', {
+                                    title: "Sorry",
+                                    error: "Couldn't buy into the game."
+                                });
+                            }
+                        });
+                    }
+                }
+                else {
+                    return res.render('error', {
+                        title: "Sorry",
+                        error: "Arbiter is down, so wagering bitcoin is temporarily disabled."
+                    });
+                }
+            });
+        }
+
+        // Make sure the user is authenticated on arbiter
+        if (req.session.arbiter_token) {
+            buyIntoRoom(req.session.arbiter_token, room, function(success) {
+                // TODO: include the pot amount in the page somewhere
+                if (success) {
+                    return res.render('room', {
+                        title: 'Real-Time Chess: Game',
+                        room_id: room_id,
+                        arbiter_token: req.session.arbiter_token
+                    });
+                }
+                else {
+                    return res.render('error', {
+                        title: "Sorry",
+                        error: "Couldn't buy into the game."
+                    });
+                }
+            });
+        }
+        else {
+            request.post('https://cointoss.arbiter.me/api/v0.1/token/create/', function(err, response, body) {
+                var parsed = JSON.parse(body);
+                if (parsed.token) {
+                    req.session.arbiter_token = parsed.token;
+                    sessions[parsed.token] = new Session(parsed.token, parsed.private_key);
+
+                    if (room.arbiter_id) {
+                        // TODO: include the pot amount in the page somewhere
+                        buyIntoRoom(parsed.token, room, function(success) {
+                            if (success) {
+                                return res.render('room', {
+                                    title: 'Real-Time Chess: Game',
+                                    room_id: room_id,
+                                    arbiter_token: req.session.arbiter_token
+                                });
+                            }
+                            else {
+                                return res.render('error', {
+                                    title: "Sorry",
+                                    error: "Couldn't buy into the game."
+                                });
+                            }
+                        });
+                    }
+
+                } else {
+                    return res.render('error', {
+                        title: "Sorry",
+                        error: "Arbiter is down, so wagering bitcoin is temporarily disabled."
+                    });
+                }
+            });
+        }
+    }
+    else {
+        return res.render('room', {
+            title: 'Real-Time Chess: Game',
+            room_id: room_id
+        });
+    }
 });
 
 // helpers ========================

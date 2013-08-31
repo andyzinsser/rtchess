@@ -1,14 +1,32 @@
 <center>
   <script type="text/javascript">
+      var openAuthWindow = function() {
+        console.log("open auth");
+        window.open('{{auth_url}}&app_name=Bullet Chess', '', 'left=100,width=400,height=600,menubar=no,resizable=no,scrollbars=no,titlebar=no,top=100');
+      };
+
       $(function() {
-          startRoom('{{{ room_id }}}');
+
+          if ("{{ auth_url }}") {
+            $("#open_auth_window").click(openAuthWindow);
+            openAuthWindow();
+          } else {
+            startRoom('{{{ room_id }}}', '{{ arbiter_token }}');
+          }
       });
   </script>
-  <div id="chess-board"></div>
-  <div class="button-bar">
-    <button id="sit-white" class="side-button btn">Sit as White</button>
-    <button id="sit-black" class="side-button btn">Sit as Black</button>
-    <button id="start-game" class="btn" disabled="disabled">Start Game</button>
-    <span id="ping-text">Ping: <span id="ping"></span> ms</span>
-  </div>
+
+  {{#if auth_url}}
+    <div id="chess-board">
+      <a class="btn btn-success btn-large btn-home" id="open_auth_window">Buy In</a>
+    </div>
+  {{else}}
+    <div class="button-bar">
+      <button id="sit-white" class="side-button btn">Sit as White</button>
+      <button id="sit-black" class="side-button btn">Sit as Black</button>
+      <button id="start-game" class="btn" disabled="disabled">Start Game</button>
+      <span id="ping-text">Ping: <span id="ping"></span> ms</span>
+    </div>
+    <div id="chess-board"></div>
+  {{/if}}
 </center>
