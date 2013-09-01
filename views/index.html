@@ -4,16 +4,11 @@
 </div>
 
 <div id="index_content">
-  <div id="step_1">
-    <p><a data-step="1" class="btn btn-success btn-large btn-home">Play next available</a></p>
-    <p><a data-step="1" data-invite="true" class="btn btn-primary btn-large btn-home">Invite a friend</a></p>
+    <a data-join-random="true" class="join-random-selection btn btn-block btn-success btn-large btn-home">Play next available</a>
+    <a class="join-random-selection btn btn-block btn-primary btn-large btn-home">Invite a friend</a>
+    <a id="reset_btn" class="hide">reset</a>
   </div>
 
-  <div id="step_2" class="hide">
-    <p><a data-step="2" data-for-bitcoin="true" class="btn btn-success btn-large btn-home">Wager <i class="icon icon-btc"></i>0.001</a></p>
-    <p><a data-step="2" class="btn btn-primary btn-large btn-home">Just play</a></p>
-    <a id="back_btn">&laquo; back</a>
-  </div>
 
 
 </div>
@@ -21,34 +16,6 @@
 
 <script>
   $(function() {
-    var find_random = true;
-
-    $("#back_btn").click(function() {
-      $("#step_2").hide();
-      $("#step_1").show();
-    });
-
-    $("#index_content").on('click', '.btn', function(evt) {
-      var $btn = $(evt.target);
-      var step = $btn.data('step');
-      var for_bitcoin = $btn.data('for-bitcoin') || false;
-
-      if ( step === 1 ) {
-
-        if ($btn.data('invite') == true) {
-          find_random = false;
-        }
-
-        $("#step_1").hide();
-        $("#step_2").removeClass("hide").show();
-      }
-      else {
-        if (find_random) {
-          window.location = "/join_random?for_bitcoin=" + for_bitcoin;
-        } else {
-          window.location = "/new_room?for_bitcoin=" + for_bitcoin;
-        }
-      }
-    });
+    initSetupButtons();
   });
 </script>

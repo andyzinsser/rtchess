@@ -70,12 +70,13 @@ process.on('uncaughtException', function(err) {
 });
 
 
-function Room(id) {
+function Room(id, for_bitcoin) {
     this.id = id;
     this.sides = {};
     this.starting = {};
     this.watchers = [];
     this.arbiter_id = undefined;
+    this.for_bitcoin = for_bitcoin;
     this.arbiter_token_sides = {};
     var self = this;
 }
@@ -294,30 +295,44 @@ app.get('/', function(req, res) {
 
 app.get('/new_room', function(req, res) {
     var room_id = randomString(10);
-    var for_bitcoin = req.query.for_bitcoin;
-    rooms[room_id] = new Room(room_id);
-    return res.redirect('/r/' + room_id + '?for_bitcoin=' + for_bitcoin);
+    var for_bitcoin = parseBool(req.query.for_bitcoin);
+    rooms[room_id] = new Room(room_id, for_bitcoin);
+    return res.redirect('/r/' + room_id);
 });
 
 app.get('/join_random', function(req, res) {
     var roomList = [];
     var id, room;
-    var for_bitcoin = req.query.for_bitcoin;
+    var for_bitcoin = parseBool(req.query.for_bitcoin);
     var oneLeft = SIDES.length - 1;
 
     // find rooms with 1 side left to fill and everyone else has hit start
     for(id in rooms) {
         room = rooms[id];
-        if(_.size(room.sides) === oneLeft && _.size(room.starting) === oneLeft)
-            roomList.push(rooms[id]);
+        if(_.size(room.sides) === oneLeft && _.size(room.starting) === oneLeft) {
+            console.log("1 SIDE LEFT + HIT START");
+            console.log("for_bitcoin: " + for_bitcoin);
+            console.log("room.for_bitcoin: " + room.for_bitcoin);
+            console.log(for_bitcoin === room.for_bitcoin);
+            if (for_bitcoin === room.for_bitcoin) {
+                roomList.push(rooms[id]);
+            }
+        }
     }
 
     // find rooms with 1 side left to fill
     if(!roomList.length) {
         for(id in rooms) {
             room = rooms[id];
-            if(_.size(room.sides) === oneLeft)
-                roomList.push(rooms[id]);
+            if(_.size(room.sides) === oneLeft) {
+                console.log("ROOM WITH 1 SIDE LEFT TO FILL");
+                console.log("for_bitcoin: " + for_bitcoin);
+                console.log("room.for_bitcoin: " + room.for_bitcoin);
+                console.log(for_bitcoin === room.for_bitcoin);
+                if (for_bitcoin === room.for_bitcoin) {
+                    roomList.push(rooms[id]);
+                }
+            }
         }
     }
 
@@ -325,8 +340,15 @@ app.get('/join_random', function(req, res) {
     if(!roomList.length) {
         for(id in rooms) {
             room = rooms[id];
-            if(_.size(room.watchers) > 0 && _.size(room.sides) !== SIDES.length)
-                roomList.push(rooms[id]);
+            if(_.size(room.watchers) > 0 && _.size(room.sides) !== SIDES.length) {
+                console.log("ROOM WITH SOMEONE IN THEM");
+                console.log("for_bitcoin: " + for_bitcoin);
+                console.log("room.for_bitcoin: " + room.for_bitcoin);
+                console.log(for_bitcoin === room.for_bitcoin);
+                if (for_bitcoin === room.for_bitcoin) {
+                    roomList.push(rooms[id]);
+                }
+            }
         }
     }
 
@@ -337,24 +359,29 @@ app.get('/join_random', function(req, res) {
 
     var i = Math.floor(Math.random()*roomList.length);
     room = roomList[i];
-    return res.redirect('/r/' + room.id + '?for_bitcoin=' + for_bitcoin);
+    return res.redirect('/r/' + room.id);
 });
 
 app.get('/r/:room_id', function(req, res) {
     var room_id = req.param('room_id');
-    var for_bitcoin = req.query.for_bitcoin;
     var room = rooms[room_id];
 
     if(!rooms[room_id]) {
-        rooms[room_id] = new Room(room_id);
+        // TODO: Not sure when this get hit in the flow
+        //       need to figure out how to determine if this game is intended to be fore bitcoin or not
+        console.log("CREATING A NEW ROOM IN /r/:room_id");
+        console.log("TODO: Figure out how to check if this is for bitcoin or not");
+        rooms[room_id] = new Room(room_id, for_bitcoin);
         room = rooms[room_id];
     }
 
     var buyIntoRoom = function(arbiter_token, room, next) {
         var private_key = sessions[arbiter_token].private_key;
+        console.log("BUY INTO ROOM");
         request.post('https://cointoss.arbiter.me/api/v0.1/challenge/' + room.arbiter_id + '/ante/?arbiter_token=' + arbiter_token + '&arbiter_private_key=' + private_key,
             function(err, response, body) {
                 var parsed = JSON.parse(body);
+                console.log(parsed);
                 if (parsed.auth_url) {
                     return res.render('room', {
                         title: 'Authenticate with Arbiter',
@@ -369,12 +396,16 @@ app.get('/r/:room_id', function(req, res) {
 
     };
 
-    if (for_bitcoin === true) {
+    console.log("FOR_BITCOIN: " + room.for_bitcoin);
+    console.log(room.for_bitcoin === true);
+    if (room.for_bitcoin === true) {
         // Make sure we have an arbiter challenge setup for this game
         if (!room.arbiter_id) {
             // arbiter.create_challenge
+            console.log("CREATE CHALLENGE");
             request.post('https://cointoss.arbiter.me/api/v0.1/challenge/create/?ante=0.001&return_address=1PkBgbVetZGjNMrkLMdzh7kc3eNJooStb4', function(err, response, body) {
                 var parsed = JSON.parse(body);
+                console.log(parsed);
                 if (parsed.success) {
                     room.arbiter_id = parsed.challenge._id;
                     if (req.session.arbiter_token) {
@@ -385,6 +416,7 @@ app.get('/r/:room_id', function(req, res) {
                                 return res.render('room', {
                                     title: 'Real-Time Chess: Game',
                                     room_id: room_id,
+                                    arbiter_id: room.arbiter_id,
                                     arbiter_token: req.session.arbiter_token
                                 });
                             }
@@ -414,6 +446,7 @@ app.get('/r/:room_id', function(req, res) {
                     return res.render('room', {
                         title: 'Real-Time Chess: Game',
                         room_id: room_id,
+                        arbiter_id: room.arbiter_id,
                         arbiter_token: req.session.arbiter_token
                     });
                 }
@@ -439,6 +472,7 @@ app.get('/r/:room_id', function(req, res) {
                                 return res.render('room', {
                                     title: 'Real-Time Chess: Game',
                                     room_id: room_id,
+                                    arbiter_id: room.arbiter_id,
                                     arbiter_token: req.session.arbiter_token
                                 });
                             }
@@ -501,6 +535,10 @@ function randomString(len) {
         ret += chars.substring(rnum,rnum+1);
     }
     return ret;
+}
+
+function parseBool(str) {
+    return (str == "true") ? true : false;
 }
 
 var port = process.env.PORT || 5000;
