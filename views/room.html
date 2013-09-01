@@ -16,13 +16,14 @@
             openAuthWindow();
           } else {
             startRoom('{{{ room_id }}}', '{{ arbiter_token }}');
+            $("#share_url").text(window.location.href);
           }
       });
   </script>
 
   {{#if auth_url}}
     <div id="chess-board">
-      <a class="btn btn-success btn-large btn-home" id="open_auth_window">Buy In</a>
+      <a class="btn btn-success btn-large btn-home" id="open_auth_window">Buy In using Arbiter</a>
     </div>
   {{else}}
     <div class="button-bar">
@@ -31,7 +32,12 @@
       <button id="start-game" class="btn btn-primary" disabled="disabled">Start Game</button>
       <span id="ping-text">Ping: <span id="ping"></span> ms</span>
     </div>
-    <div id="chess-board"></div>
+    <div id="chess-board">
+        <div class="message">
+          <h1>Invite others:</h1>
+          <p id="share_url"></p>
+        </div>
+    </div>
   {{/if}}
 </center>
 
