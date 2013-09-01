@@ -5,12 +5,10 @@
 <center>
   <script type="text/javascript">
       var openAuthWindow = function() {
-        console.log("open auth");
-        window.open('{{auth_url}}&app_name=Bullet Chess', '', 'left=100,width=400,height=600,menubar=no,resizable=no,scrollbars=no,titlebar=no,top=100');
+        window.open('{{auth_url}}&app_name=Bullet Chess', 'Bullet Chess Buy In', 'left=100,width=400,height=600,menubar=no,resizable=no,scrollbars=no,titlebar=no,top=100');
       };
 
       $(function() {
-          console.log("{{ auth_url }}");
           if ("{{ auth_url }}") {
             $("#open_auth_window").click(openAuthWindow);
             openAuthWindow();
