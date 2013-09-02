@@ -2,23 +2,8 @@
   .navbar { display:none; }
   body { margin-top: 20px; }
 </style>
+
 <center>
-  <script type="text/javascript">
-      var openAuthWindow = function() {
-        window.open('{{auth_url}}&app_name=Bullet Chess', 'Bullet Chess Buy In', 'left=100,width=400,height=600,menubar=no,resizable=no,scrollbars=no,titlebar=no,top=100');
-      };
-
-      $(function() {
-          if ("{{ auth_url }}") {
-            $("#open_auth_window").click(openAuthWindow);
-            openAuthWindow();
-          } else {
-            startRoom('{{{ room_id }}}', '{{ arbiter_token }}');
-            $("#share_url").text(window.location.href);
-          }
-      });
-  </script>
-
   {{#if auth_url}}
     <div id="chess-board">
       <a class="btn btn-success btn-large btn-home" id="open_auth_window">Buy In using Arbiter</a>
@@ -39,7 +24,18 @@
   {{/if}}
 </center>
 
-<div id="debug">
-  <p>{{arbiter_token}}</p>
-  <p>{{arbiter_id}}</p>
-</div>
+<script>
+  var openAuthWindow = function() {
+    window.open('{{auth_url}}&app_name=Bullet Chess', 'Bullet Chess Buy In', 'left=100,width=400,height=600,menubar=no,resizable=no,scrollbars=no,titlebar=no,top=100');
+  };
+
+    $(function() {
+        console.log('{{auth_url}}');
+        if ('{{ auth_url }}') {
+          buyIn('{{auth_url}}');
+        } else {
+          startRoom('{{{ room_id }}}', '{{ arbiter_token }}');
+          $("#share_url").text(window.location.href);
+        }
+    });
+</script>
