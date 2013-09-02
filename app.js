@@ -78,6 +78,7 @@ function Room(id, for_bitcoin) {
     this.arbiter_id = undefined;
     this.for_bitcoin = for_bitcoin;
     this.arbiter_token_sides = {};
+    this.bought_in_arbiter_tokens = [];
     var self = this;
 }
 
@@ -371,6 +372,7 @@ app.get('/join_random', function(req, res) {
 app.get('/r/:room_id', function(req, res) {
     var room_id = req.param('room_id');
     var room = rooms[room_id];
+    var ev = new EventEmitter();
 
     if(!rooms[room_id]) {
         // TODO: Not sure when this get hit in the flow
@@ -381,122 +383,107 @@ app.get('/r/:room_id', function(req, res) {
         room = rooms[room_id];
     }
 
-    var buyIntoRoom = function(arbiter_token, room, next) {
-        var private_key = sessions[arbiter_token].private_key;
-        request.post('https://cointoss.arbiter.me/api/v0.1/challenge/' + room.arbiter_id + '/ante/?arbiter_token=' + arbiter_token + '&arbiter_private_key=' + private_key,
-            function(err, response, body) {
-                var parsed = JSON.parse(body);
-                console.log("BUY IN CALLBACK");
-                console.log("$$$$$$$$$$$$$$$$$$$$");
-                console.log(parsed);
-                console.log("$$$$$$$$$$$$$$$$$$$$");
-                if (parsed.auth_url) {
-                    return res.render('room', {
-                        title: 'Authenticate with Arbiter',
-                        room_id: room_id,
-                        auth_url: parsed.auth_url
-                    });
-                } else {
-                    next(parsed);
-                }
-            }
-        );
+    var checkIfArbiterGameIsReady = function() {
+        var gameIsReady = true;
 
+        if (!room.arbiter_id) {
+            gameIsReady = false;
+            createChallengeOnArbiter();
+        }
+
+        if (!req.session.arbiter_token) {
+            gameIsReady = false;
+            createArbiterTokenForUser();
+        }
+
+        // After we are sure the game is setup on Arbiter and the user is authenticated
+        // Have them buy into the game
+        if (gameIsReady) {
+            if (room.bought_in_arbiter_tokens.indexOf(req.session.arbiter_token) === -1) {
+                gameIsReady = false;
+                buyIntoRoom();
+            } else {
+                renderArbiterRoom();
+            }
+        }
+
+        return gameIsReady;
     };
 
-    if (room.for_bitcoin === true) {
-        // Make sure we have an arbiter challenge setup for this game
-        if (!room.arbiter_id) {
-            request.post('https://cointoss.arbiter.me/api/v0.1/challenge/create/?ante=0.001&' +
-                         'return_address=1PkBgbVetZGjNMrkLMdzh7kc3eNJooStb4&developer_take=0.0',
-                        function(err, response, body) {
-                            var parsed = JSON.parse(body);
-                            if (parsed.success) {
-                                room.arbiter_id = parsed.challenge._id;
-                                if (req.session.arbiter_token) {
-                                    buyIntoRoom(req.session.arbiter_token, room, function(response) {
-                                        // TODO: include the pot amount in the page somewhere
-                                        if (parseBool(response.success)) {
-                                            return res.render('room', {
-                                                title: 'Real-Time Chess: Game',
-                                                room_id: room_id,
-                                                arbiter_id: room.arbiter_id,
-                                                arbiter_token: req.session.arbiter_token
-                                            });
-                                        }
-                                        else {
-                                            return res.render('error', {
-                                                title: "Sorry",
-                                                error: "Couldn't buy into the game. Make sure you have enough BTC in you Coinbase account."
-                                            });
-                                        }
-                                    });
-                                }
-                            }
-                            else {
-                                return res.render('error', {
-                                    title: "Sorry",
-                                    error: "Arbiter is down, so wagering bitcoin is temporarily disabled."
-                                });
-                            }
-                        });
-        }
-
-        // Make sure the user is authenticated on arbiter
-        if (req.session.arbiter_token) {
-            buyIntoRoom(req.session.arbiter_token, room, function(response) {
-                // TODO: include the pot amount in the page somewhere
-                if (parseBool(response.success)) {
-                    return res.render('room', {
-                        title: 'Real-Time Chess: Game',
-                        room_id: room_id,
-                        arbiter_id: room.arbiter_id,
-                        arbiter_token: req.session.arbiter_token
-                    });
+    var createChallengeOnArbiter = function() {
+        request.post('https://cointoss.arbiter.me/api/v0.1/challenge/create/?ante=0.001&return_address=1PkBgbVetZGjNMrkLMdzh7kc3eNJooStb4&developer_take=0.0',
+            function(err, response, body) {
+                var parsed = JSON.parse(body);
+                if (parsed.success) {
+                    room.arbiter_id = parsed.challenge._id;
+                    ev.emit('arbiterSetupProgress');
                 }
                 else {
-                    return res.render('error', {
-                        title: "Sorry",
-                        error: "Couldn't buy into the game. Make sure you have enough BTC in you Coinbase account."
-                    });
-                }
-            });
-        }
-        else {
-            request.post('https://cointoss.arbiter.me/api/v0.1/token/create/', function(err, response, body) {
-                var parsed = JSON.parse(body);
-                if (parsed.token) {
-                    req.session.arbiter_token = parsed.token;
-                    sessions[parsed.token] = new Session(parsed.token, parsed.private_key);
-
-                    if (room.arbiter_id) {
-                        // TODO: include the pot amount in the page somewhere
-                        buyIntoRoom(parsed.token, room, function(response) {
-                            if (parseBool(response.success)) {
-                                return res.render('room', {
-                                    title: 'Real-Time Chess: Game',
-                                    room_id: room_id,
-                                    arbiter_id: room.arbiter_id,
-                                    arbiter_token: req.session.arbiter_token
-                                });
-                            }
-                            else {
-                                return res.render('error', {
-                                    title: "Sorry",
-                                    error: "Couldn't buy into the game. Make sure you have enough BTC in you Coinbase account."
-                                });
-                            }
-                        });
-                    }
-
-                } else {
                     return res.render('error', {
                         title: "Sorry",
                         error: "Arbiter is down, so wagering bitcoin is temporarily disabled."
                     });
                 }
             });
-        }
+    };
+
+    var createArbiterTokenForUser = function() {
+        request.post('https://cointoss.arbiter.me/api/v0.1/token/create/', function(err, response, body) {
+            var parsed = JSON.parse(body);
+            if (parsed.token) {
+                req.session.arbiter_token = parsed.token;
+                sessions[parsed.token] = new Session(parsed.token, parsed.private_key);
+                ev.emit('arbiterSetupProgress');
+            } else {
+                return res.render('error', {
+                    title: "Sorry",
+                    error: "Arbiter is down, so wagering bitcoin is temporarily disabled."
+                });
+            }
+        });
+    };
+
+    var buyIntoRoom = function() {
+        var at = req.session.arbiter_token;
+        var private_key = sessions[at].private_key;
+        request.post('https://cointoss.arbiter.me/api/v0.1/challenge/' + room.arbiter_id + '/ante/?arbiter_token=' + at + '&arbiter_private_key=' + private_key,
+            function(err, response, body) {
+                var parsed = JSON.parse(body);
+                console.log(parsed);
+                if (parsed.auth_url) {
+                    return res.render('room', {
+                        title: 'Authenticate with Arbiter',
+                        room_id: room_id,
+                        auth_url: parsed.auth_url
+                    });
+                } else if (parsed.errors.length) {
+                    return res.render('error', {
+                        title: 'Coinbase Error',
+                        room_id: room_id,
+                        error: 'There was an error transferring your Bitcoin from Coinbase. Make sure you have sufficient funds.' +
+                               ' Email: info@arbiter.me if you have any questions.'
+                    });
+                } else {
+                    room.bought_in_arbiter_tokens.push(req.session.arbiter_token);
+                    ev.emit('arbiterSetupProgress');
+                }
+            }
+        );
+    };
+
+    var renderArbiterRoom = function() {
+        return res.render('room', {
+            title: 'Real-Time Chess: Game',
+            room_id: room_id,
+            arbiter_id: room.arbiter_id,
+            arbiter_token: req.session.arbiter_token
+        });
+    };
+
+    if (room.for_bitcoin === true) {
+        // TRIGGER THIS EVENT WHENEVER THE ARBITER GAME STATE GETS EDITED
+        ev.on('arbiterSetupProgress', checkIfArbiterGameIsReady);
+        checkIfArbiterGameIsReady();
     }
     else {
         console.log("JUST LOAD THE ROOM");
