@@ -386,13 +386,12 @@ app.get('/r/:room_id', function(req, res) {
         //       need to figure out how to determine if this game is intended to be fore bitcoin or not
         console.log("CREATING A NEW ROOM IN /r/:room_id");
         console.log("TODO: Figure out how to check if this is for bitcoin or not");
-        rooms[room_id] = new Room(room_id, for_bitcoin);
+        rooms[room_id] = new Room(room_id, false);
         room = rooms[room_id];
     }
 
     var buyIntoRoom = function(arbiter_token, room, next) {
         var private_key = sessions[arbiter_token].private_key;
-        console.log("BUY INTO ROOM");
         request.post('https://cointoss.arbiter.me/api/v0.1/challenge/' + room.arbiter_id + '/ante/?arbiter_token=' + arbiter_token + '&arbiter_private_key=' + private_key,
             function(err, response, body) {
                 var parsed = JSON.parse(body);
@@ -411,46 +410,43 @@ app.get('/r/:room_id', function(req, res) {
 
     };
 
-    console.log("FOR_BITCOIN: " + room.for_bitcoin);
-    console.log(room.for_bitcoin === true);
     if (room.for_bitcoin === true) {
         // Make sure we have an arbiter challenge setup for this game
         if (!room.arbiter_id) {
-            // arbiter.create_challenge
-            console.log("CREATE CHALLENGE");
-            request.post('https://cointoss.arbiter.me/api/v0.1/challenge/create/?ante=0.001&return_address=1PkBgbVetZGjNMrkLMdzh7kc3eNJooStb4', function(err, response, body) {
-                var parsed = JSON.parse(body);
-                console.log(parsed);
-                if (parsed.success) {
-                    room.arbiter_id = parsed.challenge._id;
-                    if (req.session.arbiter_token) {
-                        buyIntoRoom(req.session.arbiter_token, room, function(success) {
+            request.post('https://cointoss.arbiter.me/api/v0.1/challenge/create/?ante=0.001&' +
+                         'return_address=1PkBgbVetZGjNMrkLMdzh7kc3eNJooStb4&developer_take=0.0',
+                        function(err, response, body) {
+                            var parsed = JSON.parse(body);
+                            if (parsed.success) {
+                                room.arbiter_id = parsed.challenge._id;
+                                if (req.session.arbiter_token) {
+                                    buyIntoRoom(req.session.arbiter_token, room, function(success) {
 
-                            // TODO: include the pot amount in the page somewhere
-                            if (success) {
-                                return res.render('room', {
-                                    title: 'Real-Time Chess: Game',
-                                    room_id: room_id,
-                                    arbiter_id: room.arbiter_id,
-                                    arbiter_token: req.session.arbiter_token
-                                });
+                                        // TODO: include the pot amount in the page somewhere
+                                        if (success) {
+                                            return res.render('room', {
+                                                title: 'Real-Time Chess: Game',
+                                                room_id: room_id,
+                                                arbiter_id: room.arbiter_id,
+                                                arbiter_token: req.session.arbiter_token
+                                            });
+                                        }
+                                        else {
+                                            return res.render('error', {
+                                                title: "Sorry",
+                                                error: "Couldn't buy into the game."
+                                            });
+                                        }
+                                    });
+                                }
                             }
                             else {
                                 return res.render('error', {
                                     title: "Sorry",
-                                    error: "Couldn't buy into the game."
+                                    error: "Arbiter is down, so wagering bitcoin is temporarily disabled."
                                 });
                             }
                         });
-                    }
-                }
-                else {
-                    return res.render('error', {
-                        title: "Sorry",
-                        error: "Arbiter is down, so wagering bitcoin is temporarily disabled."
-                    });
-                }
-            });
         }
 
         // Make sure the user is authenticated on arbiter
