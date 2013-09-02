@@ -303,6 +303,8 @@ app.get('/about', function(req, res) {
 app.get('/new_room', function(req, res) {
     var room_id = randomString(10);
     var for_bitcoin = parseBool(req.query.for_bitcoin);
+    console.log("CREATE NEW ROOM new_room");
+    console.log(for_bitcoin);
     rooms[room_id] = new Room(room_id, for_bitcoin);
     return res.redirect('/r/' + room_id);
 });
@@ -366,13 +368,20 @@ app.get('/join_random', function(req, res) {
 
     var i = Math.floor(Math.random()*roomList.length);
     room = roomList[i];
+    console.log("redirect to : " + room.id);
     return res.redirect('/r/' + room.id);
 });
 
 app.get('/r/:room_id', function(req, res) {
     var room_id = req.param('room_id');
     var room = rooms[room_id];
+
+    console.log("ROOM");
+    console.log(room);
+
+
     var ev = new EventEmitter();
+    var buyInInProgress = false;
 
     if(!rooms[room_id]) {
         // TODO: Not sure when this get hit in the flow
@@ -385,12 +394,14 @@ app.get('/r/:room_id', function(req, res) {
 
     var checkIfArbiterGameIsReady = function() {
         var gameIsReady = true;
-
+        console.log("*** check if game is ready ***");
+        console.log("room.arbiter_id: " + room.arbiter_id);
         if (!room.arbiter_id) {
             gameIsReady = false;
             createChallengeOnArbiter();
         }
 
+        console.log("req.session.arbiter_token: " + req.session.arbiter_token);
         if (!req.session.arbiter_token) {
             gameIsReady = false;
             createArbiterTokenForUser();
@@ -398,11 +409,16 @@ app.get('/r/:room_id', function(req, res) {
 
         // After we are sure the game is setup on Arbiter and the user is authenticated
         // Have them buy into the game
+        console.log("gameIsReady: " + gameIsReady);
         if (gameIsReady) {
+            console.log(room.bought_in_arbiter_tokens.indexOf(req.session.arbiter_token) === -1);
             if (room.bought_in_arbiter_tokens.indexOf(req.session.arbiter_token) === -1) {
                 gameIsReady = false;
-                buyIntoRoom();
+                if (!buyInInProgress) {
+                    buyIntoRoom();
+                }
             } else {
+                console.log(room);
                 renderArbiterRoom();
             }
         }
@@ -444,11 +460,15 @@ app.get('/r/:room_id', function(req, res) {
     };
 
     var buyIntoRoom = function() {
+        console.log("buyIntoRoom");
         var at = req.session.arbiter_token;
         var private_key = sessions[at].private_key;
+        buyInInProgress = true;
         request.post('https://cointoss.arbiter.me/api/v0.1/challenge/' + room.arbiter_id + '/ante/?arbiter_token=' + at + '&arbiter_private_key=' + private_key,
             function(err, response, body) {
                 var parsed = JSON.parse(body);
+                buyInInProgress = false;
+                console.log("buyIntoRoom.callback");
                 console.log(parsed);
                 if (parsed.auth_url) {
                     return res.render('room', {
@@ -481,7 +501,7 @@ app.get('/r/:room_id', function(req, res) {
     };
 
     if (room.for_bitcoin === true) {
-        // TRIGGER THIS EVENT WHENEVER THE ARBITER GAME STATE GETS EDITED
+        // TRIGGER THIS EVENT WHENEVER THE ARBITER GAME STATE CHANGES
         ev.on('arbiterSetupProgress', checkIfArbiterGameIsReady);
         checkIfArbiterGameIsReady();
     }

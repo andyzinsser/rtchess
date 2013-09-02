@@ -94,8 +94,8 @@ a { cursor: pointer;}
   border: 5px solid #333333;
   border-collapse: collapse;
   position: relative;
-  width: 640px;
-  height: 640px;
+  width: 650px;
+  height: 650px;
 }
 
 #chess-board.filled .message { color: #222; }
