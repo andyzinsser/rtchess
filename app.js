@@ -27,11 +27,7 @@ var production = process.env.NODE_ENV === 'production';
 
 app.configure(function(){
     var bundle = require('browserify')(process.env.PWD + '/lib/client.js');
-    var allowCrossDomain = function(req, res, next) {
-        res.header('Access-Control-Allow-Origin', '*');
-    };
     app.use(bundle);
-    app.use(allowCrossDomain);
     app.use(require('connect-less')({ src: process.env.PWD, debug:true }));
     app.use(express['static'](path.join(process.env.PWD, 'static')));
 
@@ -54,8 +50,23 @@ app.configure('production', function() {
 });
 
 app.configure(function(){
+    var allowCrossDomain = function(req, res, next) {
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+
+        // intercept OPTIONS method
+        if ('OPTIONS' == req.method) {
+          res.send(200);
+        }
+        else {
+          next();
+        }
+    };
+
     app.use(express.bodyParser());
     app.use(express.methodOverride());
+    app.use(allowCrossDomain);
     app.use(app.router);
     app.set('views', path.join(process.env.PWD, 'views'));
     app.set('view engine', 'html');
