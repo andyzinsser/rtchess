@@ -386,7 +386,10 @@ app.get('/r/:room_id', function(req, res) {
         request.post('https://cointoss.arbiter.me/api/v0.1/challenge/' + room.arbiter_id + '/ante/?arbiter_token=' + arbiter_token + '&arbiter_private_key=' + private_key,
             function(err, response, body) {
                 var parsed = JSON.parse(body);
+                console.log("BUY IN CALLBACK");
+                console.log("$$$$$$$$$$$$$$$$$$$$");
                 console.log(parsed);
+                console.log("$$$$$$$$$$$$$$$$$$$$");
                 if (parsed.auth_url) {
                     return res.render('room', {
                         title: 'Authenticate with Arbiter',
@@ -394,7 +397,7 @@ app.get('/r/:room_id', function(req, res) {
                         auth_url: parsed.auth_url
                     });
                 } else {
-                    next(parsed.success);
+                    next(parsed);
                 }
             }
         );
@@ -411,10 +414,9 @@ app.get('/r/:room_id', function(req, res) {
                             if (parsed.success) {
                                 room.arbiter_id = parsed.challenge._id;
                                 if (req.session.arbiter_token) {
-                                    buyIntoRoom(req.session.arbiter_token, room, function(success) {
-
+                                    buyIntoRoom(req.session.arbiter_token, room, function(response) {
                                         // TODO: include the pot amount in the page somewhere
-                                        if (success) {
+                                        if (parseBool(response.success)) {
                                             return res.render('room', {
                                                 title: 'Real-Time Chess: Game',
                                                 room_id: room_id,
@@ -425,7 +427,7 @@ app.get('/r/:room_id', function(req, res) {
                                         else {
                                             return res.render('error', {
                                                 title: "Sorry",
-                                                error: "Couldn't buy into the game."
+                                                error: "Couldn't buy into the game. Make sure you have enough BTC in you Coinbase account."
                                             });
                                         }
                                     });
@@ -442,9 +444,9 @@ app.get('/r/:room_id', function(req, res) {
 
         // Make sure the user is authenticated on arbiter
         if (req.session.arbiter_token) {
-            buyIntoRoom(req.session.arbiter_token, room, function(success) {
+            buyIntoRoom(req.session.arbiter_token, room, function(response) {
                 // TODO: include the pot amount in the page somewhere
-                if (success) {
+                if (parseBool(response.success)) {
                     return res.render('room', {
                         title: 'Real-Time Chess: Game',
                         room_id: room_id,
@@ -455,7 +457,7 @@ app.get('/r/:room_id', function(req, res) {
                 else {
                     return res.render('error', {
                         title: "Sorry",
-                        error: "Couldn't buy into the game."
+                        error: "Couldn't buy into the game. Make sure you have enough BTC in you Coinbase account."
                     });
                 }
             });
@@ -469,8 +471,8 @@ app.get('/r/:room_id', function(req, res) {
 
                     if (room.arbiter_id) {
                         // TODO: include the pot amount in the page somewhere
-                        buyIntoRoom(parsed.token, room, function(success) {
-                            if (success) {
+                        buyIntoRoom(parsed.token, room, function(response) {
+                            if (parseBool(response.success)) {
                                 return res.render('room', {
                                     title: 'Real-Time Chess: Game',
                                     room_id: room_id,
@@ -481,7 +483,7 @@ app.get('/r/:room_id', function(req, res) {
                             else {
                                 return res.render('error', {
                                     title: "Sorry",
-                                    error: "Couldn't buy into the game."
+                                    error: "Couldn't buy into the game. Make sure you have enough BTC in you Coinbase account."
                                 });
                             }
                         });
