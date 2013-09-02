@@ -7,7 +7,19 @@
   {{#if auth_url}}
     <div id="chess-board">
       <a class="btn btn-success btn-large btn-home" id="open_auth_window">Buy In for <i class="icon icon-btc"></i>0.001</a>
-      <p>Bullet Chess uses Arbiter to secure your wager and payout out the winner. More info <a href="http://arbiter.me" target="_blank">here</a></p>
+      <div>
+        <a id="how_arbiter_works_btn">What will happen when I click Buy in?</a>
+        <div id="how_arbiter_works" style="display:none;">
+          <p>Once you authenticate your Coinbase account, everything will happend behind the scenes. But for the
+            curious ones out there, here are more details...</p>
+          <p>Bullet Chess uses <a href="http://arbiter.me" target="_blank">Arbiter</a> to manage the wagered bitcoin
+            during the game. You and your opponent will buy into a wallet managed my Arbiter (via <a href="https://coinbase.com" target="_blank">Coinbase</a>). Once there
+            is a winner, the funds will get released to that winner (minus a 1% fee on the transaction).
+          </p>
+
+          <p>If you have any other questions, don't hesitate to reach out to <a href="mailto:info@arbiter.me">info@arbiter.me</a></p>
+        </div>
+      </div>
     </div>
   {{else}}
     <div class="button-bar">
@@ -30,13 +42,16 @@
     window.open('{{auth_url}}&app_name=Bullet Chess', 'Bullet Chess Buy In', 'left=100,width=400,height=600,menubar=no,resizable=no,scrollbars=no,titlebar=no,top=100');
   };
 
-    $(function() {
-        console.log('{{auth_url}}');
-        if ('{{ auth_url }}') {
-          buyIn('{{auth_url}}');
-        } else {
-          startRoom('{{{ room_id }}}', '{{ arbiter_token }}');
-          $("#share_url").text(window.location.href);
-        }
-    });
+  $(function() {
+      if ('{{ auth_url }}') {
+        buyIn('{{auth_url}}');
+      } else {
+        startRoom('{{{ room_id }}}', '{{ arbiter_token }}');
+        $("#share_url").text(window.location.href);
+      }
+
+      $("#how_arbiter_works_btn").click(function() {
+        $("#how_arbiter_works").toggle();
+      })
+  });
 </script>

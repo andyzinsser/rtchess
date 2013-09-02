@@ -78,6 +78,19 @@ a { cursor: pointer;}
 
 #chess-board.filled .message { color: #222; }
 
+#how_arbiter_works_btn {
+  display:block;
+  margin: 20px;
+}
+
+#how_arbiter_works p {
+  color:#eee;
+  font-family:Helvetica, Arial, 'sans-serif';
+  font-size:14px;
+  margin:20px;
+  text-align:left;
+}
+
 .chess-cell {
   background: #fff;
   background: -moz-linear-gradient(top, #ffffff, #eeeeee);
