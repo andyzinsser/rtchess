@@ -293,6 +293,12 @@ app.get('/', function(req, res) {
     });
 });
 
+app.get('/about', function(req, res) {
+    return res.render('about', {
+        title: 'Bullet Chess'
+    });
+});
+
 app.get('/new_room', function(req, res) {
     var room_id = randomString(10);
     var for_bitcoin = parseBool(req.query.for_bitcoin);

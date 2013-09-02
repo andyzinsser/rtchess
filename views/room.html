@@ -23,9 +23,11 @@
     </div>
   {{else}}
     <div class="button-bar">
-      <button id="sit-white" class="side-button btn">Sit as White</button>
-      <button id="sit-black" class="side-button btn btn-inverse">Sit as Black</button>
-      <button id="start-game" class="btn btn-primary" disabled="disabled">Start Game</button>
+      <div class="btn-group">
+        <button id="sit-white" class="side-button btn">Sit as White</button>
+        <button id="sit-black" class="side-button btn btn-inverse">Sit as Black</button>
+        <button id="start-game" class="btn btn-primary" disabled="disabled">Start Game</button>
+      </div>
       <span id="ping-text">Ping: <span id="ping"></span> ms</span>
     </div>
     <div id="chess-board">
