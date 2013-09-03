@@ -105,7 +105,11 @@ Room.prototype.init = function() {
             request.post('https://cointoss.arbiter.me/api/v0.1/challenge/' + self.arbiter_id + '/payout/?winner_token=' + self.arbiter_token_sides[color],
                 function(err, response, body) {
                     var parsed = JSON.parse(body);
-                    console.log(parsed);
+                    args = {
+                        amount: parsed.challenge.winner_paid_amount,
+                        winner: color
+                    };
+                    self.broadcast('arbiterPaid', args);
                 });
         }
     });

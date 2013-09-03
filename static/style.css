@@ -213,6 +213,10 @@ a { cursor: pointer;}
   color: #3333ff;
 }
 
+#payout_modal .modal-footer {
+  text-align:center;
+}
+
 @media (min-width: 768px) {
   .navbar-collapse.collapse {
     float:left;

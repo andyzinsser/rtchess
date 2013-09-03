@@ -37,6 +37,20 @@
           <p id="share_url"></p>
         </div>
     </div>
+    {{#if arbiter_token}}
+      <div class="modal fade" id="payout_modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-body">
+              <p><span id="winner"></span> has won <span id="amount"></span>btc</p>
+            </div>
+            <div class="modal-footer">
+              <a href="/" class="btn btn-success btn-home">Play again</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {{/if}}
   {{/if}}
 </center>
 
