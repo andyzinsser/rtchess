@@ -24,18 +24,23 @@
     </div>
   {{else}}
     <div class="button-bar">
+      <p>Select your team</p>
+      <br>
       <div class="btn-group">
-        <button id="sit-white" class="side-button btn">Sit as White</button>
-        <button id="sit-black" class="side-button btn btn-inverse">Sit as Black</button>
-        <button id="start-game" class="btn btn-primary" disabled="disabled">Start Game</button>
+        <button id="sit-white" class="side-button btn btn-success">Sit as White</button>
+        <button id="sit-black" class="side-button btn btn-primary">Sit as Black</button>
       </div>
+      <br>
+      <button id="start-game" class="btn btn-default btn-home" disabled="disabled">Start Game</button>
       <span id="ping-text">Ping: <span id="ping"></span> ms</span>
     </div>
     <div id="chess-board">
+
+        <!-- TODO: Move this to show only once they user has selected a side
         <div class="message">
-          <h1>Invite others:</h1>
-          <p id="share_url"></p>
-        </div>
+          <h3>Still waiting for someone to join?</h3>
+          <p>Invite a friend using the link: <span id="share_url"></span></p>
+        </div> -->
     </div>
     {{#if arbiter_token}}
       <div class="modal fade" id="payout_modal" tabindex="-1" role="dialog">

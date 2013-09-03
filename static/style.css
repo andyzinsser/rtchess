@@ -43,7 +43,14 @@ h1, h2, h3, h4, h5, h6, p {
 
 p { font-size:18px; }
 
-a { cursor: pointer;}
+a {
+  cursor: pointer;
+  color: #999;
+}
+a:hover {
+  color:#eee;
+  text-decoration: none;
+}
 
 .navbar-inner {
   -webkit-border-radius: 0;
@@ -186,10 +193,10 @@ a { cursor: pointer;}
   width: 100%;
   text-align: center;
   cursor: inherit;
-  -moz-user-select: -moz-none;
+  /*-moz-user-select: -moz-none;
   -khtml-user-select: none;
   -webkit-user-select: none;
-  -o-user-select: none;
+  -o-user-select: none;*/
 }
 #ping-text {
   color:#999;
@@ -198,19 +205,22 @@ a { cursor: pointer;}
   width: 8em;
 }
 .button-bar {
-  margin:40px auto -80px auto;
+  color:#fff;
+  margin:140px auto -210px auto;
   padding: 5px;
   position:relative;
   text-align: center;
   z-index:10;
 }
+
+#start-game {
+  margin-top:20px;
+}
+
 .btn-home {
   font-size: 24px;
   margin-left: 5px;
   margin-right: 5px;
-}
-.start-pressed {
-  color: #3333ff;
 }
 
 #payout_modal .modal-footer {
@@ -256,8 +266,8 @@ body {
 
 #footer a,
 #footer p {
-  color:#999;
   font-size:14px;
+  font-family:Helvetica, Arial, 'sans-serif';
   text-align:center;
 }
 
