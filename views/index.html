@@ -4,9 +4,26 @@
 </div>
 
 <div id="index_content">
-    <a data-join-random="true" class="join-random-selection btn btn-block btn-success btn-large btn-home">New Game</a>
-  </div>
+    <a id="new_game" class="btn btn-block btn-success btn-large btn-home">New Game</a>
+
 </div>
+
+{{#if open_games}}
+    <div class="panel panel-default" id="open_games">
+      <div class="panel-heading">
+        <h3 class="panel-title">Your open games</h3>
+      </div>
+      <div class="panel-body">
+        {{#each open_games}}
+            <a class="btn btn-default" href="/r/{{this.id}}">
+                {{this.id}}<br>
+                white:{{this.white_session_id}}<br>
+                black:{{this.black_session_id}}<br>
+            </a>
+        {{/each}}
+      </div>
+    </div>
+{{/if}}
 
 <script>
   $(function() {
