@@ -80,11 +80,13 @@ mixpanel.init("5fdc7ac1feadde831a370c9f46fead78");</script>
     </div>
   </footer>
 
+  <div id="debug">{{session_id}}</div>
+
   <!--- The Arbiter widget will get dropped into this div -->
   <div id="arbiter_widget"></div>
 
   <!-- The Arbiter Widget Javascript -->
-  <script type="text/javascript" src="http://localhost:5000/static/widget/arbiter.js"></script>
+  <script type="text/javascript" src="https://www.arbiter.me/static/widget/v1/arbiter.js"></script>
 
   <!-- Callback for sending the arbiter_user_id to the bullet chess server
        once Arbiter has created / authenticated the user -->
@@ -93,9 +95,6 @@ mixpanel.init("5fdc7ac1feadde831a370c9f46fead78");</script>
       $.post('/register-arbiter-user', {arbiter_user_id: event.user_id});
     });
   </script>
-
-
-  <div id="debug">{{session_id}}</div>
 
 
 
