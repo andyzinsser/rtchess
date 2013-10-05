@@ -360,7 +360,7 @@ function parseBool(str) {
     return (str == "true") ? true : false;
 }
 
-var port = (production) ? process.env.PORT || 5000 : 8000;
+var port = (process.env.NODE_ENV == 'dev') ? 8000 : 5000;
 
 server.listen(port, function() {
     logger.info('server running on port ' + port);
