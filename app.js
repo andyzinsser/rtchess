@@ -359,8 +359,8 @@ function parseBool(str) {
     return (str == "true") ? true : false;
 }
 
-var port = 8000;
-// var port = process.env.PORT || 5000;
+// var port = 8000;
+var port = process.env.PORT || 5000;
 
 server.listen(port, function() {
     logger.info('server running on port ' + port);
