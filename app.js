@@ -126,18 +126,14 @@ io.sockets.on('connection', function(socket) {
 
 // Create a new game and list current games the user is in
 //
+
 app.get('/', function(req, res) {
-    // Room.find({$or: [{white_session_id: req.session.id}, {black_session_id: req.session.id}]}, function(err, docs) {
-    //     return res.render('index', {
-    //         title: 'Bet BTC on Chess',
-    //         open_games: docs,
-    //         session_id: req.session.id
-    //     });
-    // });
-    return res.render('index', {
-        title: 'Bet BTC on Chess',
-        open_games: [],
-        session_id: "NONE"
+    Room.find({$or: [{white_session_id: req.session.id}, {black_session_id: req.session.id}]}, function(err, docs) {
+        return res.render('index', {
+            title: 'Bet BTC on Chess',
+            open_games: docs,
+            session_id: req.session.id
+        });
     });
 });
 
@@ -364,8 +360,7 @@ function parseBool(str) {
     return (str == "true") ? true : false;
 }
 
-// var port = 8000;
-var port = process.env.PORT || 5000;
+var port = (production) ? process.env.PORT || 5000 : 8000;
 
 server.listen(port, function() {
     logger.info('server running on port ' + port);
