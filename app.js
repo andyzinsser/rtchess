@@ -127,12 +127,17 @@ io.sockets.on('connection', function(socket) {
 // Create a new game and list current games the user is in
 //
 app.get('/', function(req, res) {
-    Room.find({$or: [{white_session_id: req.session.id}, {black_session_id: req.session.id}]}, function(err, docs) {
-        return res.render('index', {
-            title: 'Bet BTC on Chess',
-            open_games: docs,
-            session_id: req.session.id
-        });
+    // Room.find({$or: [{white_session_id: req.session.id}, {black_session_id: req.session.id}]}, function(err, docs) {
+    //     return res.render('index', {
+    //         title: 'Bet BTC on Chess',
+    //         open_games: docs,
+    //         session_id: req.session.id
+    //     });
+    // });
+    return res.render('index', {
+        title: 'Bet BTC on Chess',
+        open_games: [],
+        session_id: "NONE"
     });
 });
 
